@@ -9,13 +9,10 @@ from bokeh.plotting import curdoc, figure
 from astropy.table import Table
 
 
-def load_data(file_input):
-    df = Table.read(file_input, format='fits')
-    df = df.to_pandas()
-    df['local_time'] = pd.to_datetime(df['local_time'])
-    df = df.dropna()
-
-load_data('hillas.fits')
+df = Table.read('Bokeh_Hillas/hillas.fits', format='fits')
+df = df.to_pandas()
+df['local_time'] = pd.to_datetime(df['local_time'])
+df = df.dropna()
 
 SIZES = list(range(6, 22, 3))
 COLORS = Spectral5
