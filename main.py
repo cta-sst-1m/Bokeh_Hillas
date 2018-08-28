@@ -139,12 +139,12 @@ def create_figure():
 
         sz = 9
         if size.value != 'None':
-            groups = pd.qcut(df[size.value].values, len(SIZES))
+            groups = pd.qcut(df_loc[size.value].values, len(SIZES))
             sz = [SIZES[xx] for xx in groups.codes]
 
         c = "#31AADE"
         if color.value != 'None':
-            groups = pd.qcut(df[color.value].values, len(COLORS))
+            groups = pd.qcut(df_loc[color.value].values, len(COLORS))
             c = [COLORS[xx] for xx in groups.codes]
 
         p.circle(x=xs, y=ys, color=c, size=sz, line_color="white", alpha=0.6, hover_color='white', hover_alpha=0.5)
@@ -204,7 +204,7 @@ cut_2 = Select(title='Cuts', value='', options=columns, width=100)
 cut_2.on_change('value', update)
 cut_2_op = Select(title='Operator', value='', options=cut_list, width=50)
 cut_2_op.on_change('value', update)
-cut_2_input = TextInput(value="", title="", width=50)
+cut_2_input = TextInput(value="", title="Value", width=50)
 cut_2_input.on_change('value', update)
 
 #cut 3
