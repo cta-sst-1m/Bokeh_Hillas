@@ -22,7 +22,7 @@ def load_data(filename):
     global df
     df = Table.read(filename, format='fits')
     df = df.to_pandas()
-    df['local_time'] = pd.to_datetime(df['local_time'])
+    df['time'] = pd.to_datetime(df['local_time'])
     df = df.dropna()
     global columns, discrete, continuous, quantileable
     columns = sorted(df.columns)
@@ -81,10 +81,10 @@ def create_figure():
             groups = pd.qcut(df_loc[color.value].values, len(COLORS))
             c = [COLORS[xx] for xx in groups.codes]
 
-        if type(sz) != type(int()):
+        if type(int()) != type(sz):
             df_loc['size'] = sz
 
-        if type(c) != type(str()):
+        if type(str()) != type(c):
             df_loc['color'] = c
 
         source = ColumnDataSource(data=df_loc)
@@ -96,7 +96,6 @@ def create_figure():
             kw['y_range'] = sorted(set(source[y.value]))
         kw['title'] = "%s vs %s" % (x_title, y_title)
 
-
         tuple_hover_var = []
         for i in columns:
             if i != 'None':
@@ -104,7 +103,7 @@ def create_figure():
                 tuple_hover_var.append(eval(hover_list))
 
         TOOLS = ["pan,box_zoom,reset,wheel_zoom, hover"]
-        if x.value == 'local_time' and y.value != 'local_time':
+        if x.value == 'time' and y.value != 'time':
             p = figure(plot_height=800, plot_width=800, x_axis_type="datetime", tools=TOOLS,
                        toolbar_location='below', toolbar_sticky=False, **kw)
             p.xaxis.formatter = DatetimeTickFormatter(microseconds=["%m/%d/%y %I:%M:%S %p"],
@@ -117,9 +116,7 @@ def create_figure():
                                                       days=["%m/%d/%y %I:%M:%S %p"],
                                                       months=["%m/%d/%y %I:%M:%S %p"],
                                                       years=["%m/%d/%y %I:%M:%S %p"])
-            p.xaxis.major_label_orientation = np.pi / 4
-
-        elif x.value != 'local_time' and y.value == 'local_time':
+        elif x.value != 'time' and y.value == 'time':
             p = figure(plot_height=800, plot_width=800, y_axis_type="datetime", tools=TOOLS, toolbar_location='below',
                        toolbar_sticky=False, **kw)
             p.yaxis.formatter = DatetimeTickFormatter(microseconds=["%m/%d/%y %I:%M:%S %p"],
@@ -132,9 +129,7 @@ def create_figure():
                                                       days=["%m/%d/%y %I:%M:%S %p"],
                                                       months=["%m/%d/%y %I:%M:%S %p"],
                                                       years=["%m/%d/%y %I:%M:%S %p"])
-            p.yaxis.major_label_orientation = np.pi / 4
-
-        elif x.value == 'local_time' and y.value == 'local_time':
+        elif x.value == 'time' and y.value == 'time':
             p = figure(plot_height=800, plot_width=800, x_axis_type="datetime", y_axis_type="datetime",
                        toolbar_location='below', toolbar_sticky=False, tools=TOOLS, **kw)
             p.xaxis.formatter = DatetimeTickFormatter(microseconds=["%m/%d/%y %I:%M:%S %p"],
@@ -147,7 +142,6 @@ def create_figure():
                                                       days=["%m/%d/%y %I:%M:%S %p"],
                                                       months=["%m/%d/%y %I:%M:%S %p"],
                                                       years=["%m/%d/%y %I:%M:%S %p"])
-            p.xaxis.major_label_orientation = np.pi / 4
             p.yaxis.formatter = DatetimeTickFormatter(microseconds=["%m/%d/%y %I:%M:%S %p"],
                                                       milliseconds=["%m/%d/%y %I:%M:%S %p"],
                                                       seconds=["%m/%d/%y %I:%M:%S %p"],
@@ -158,15 +152,20 @@ def create_figure():
                                                       days=["%m/%d/%y %I:%M:%S %p"],
                                                       months=["%m/%d/%y %I:%M:%S %p"],
                                                       years=["%m/%d/%y %I:%M:%S %p"])
-            p.yaxis.major_label_orientation = np.pi / 4
         else:
             p = figure(plot_height=800, plot_width=800, tools=TOOLS, toolbar_location='below',
                        toolbar_sticky=False, **kw)
 
+        if x.value == 'local_time' or x.value == 'time':
+            p.xaxis.major_label_orientation = np.pi / 4
+
+        if y.value == 'local_time' or y.value == 'time':
+            p.yaxis.major_label_orientation = np.pi / 4
+
         p.xaxis.axis_label = x_title
         p.yaxis.axis_label = y_title
 
-        if type(sz) == type(int()) and type(c) == type(str()):
+        if type(int()) == type(sz) and type(c) == type(str()):
             p.circle(x.value, y.value, color=c, size=sz, line_color="white", alpha=0.6, hover_color="red",
                      source=source)
         elif type(sz) != type(int()) and type(c) == type(str()):
@@ -205,7 +204,6 @@ def create_figure():
 
 # cut possibilities:
 cut_list = ["==", "<", "<=", ">", ">="]
-
 old_filnemane = ""
 
 
