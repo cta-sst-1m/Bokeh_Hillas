@@ -4,7 +4,7 @@ import os
 
 from bokeh.layouts import row, widgetbox, column
 from bokeh.models import Select, DatetimeTickFormatter, TextInput, HoverTool, \
-    ColumnDataSource, ColorBar, LinearColorMapper, BasicTicker
+    ColumnDataSource, ColorBar, LinearColorMapper, BasicTicker, Slider
 from bokeh.palettes import Spectral5, Inferno, Inferno256
 from bokeh.plotting import curdoc, figure
 from bokeh.themes import Theme
@@ -41,32 +41,38 @@ def create_figure():
         cut_cmd = ""
         if (str(cut_1.value) in cut_1.options) and (str(cut_1_op.value) in cut_1_op.options) and \
                         str(cut_1.value) is not 'None' and cut_1_input.value != "":
-            cut_cmd += "(" + "df[\"" + str(cut_1.value) + "\"]" + str(cut_1_op.value) + \
+            cut_cmd += "(df[\"" + str(cut_1.value) + "\"]" + str(cut_1_op.value) + \
                        "%d" % float(cut_1_input.value) + ")"
 
         if (str(cut_2.value) in cut_2.options) and (str(cut_2_op.value) in cut_2_op.options) and \
                         str(cut_2.value) is not 'None' and cut_2_input.value != "":
             if cut_cmd != "":
                 cut_cmd += " & "
-            cut_cmd += "(" + "df[\"" + str(cut_2.value) + "\"]" + str(cut_2_op.value) + \
+            cut_cmd += "(df[\"" + str(cut_2.value) + "\"]" + str(cut_2_op.value) + \
                        "%d" % float(cut_2_input.value) + ")"
 
         if (str(cut_3.value) in cut_3.options) and (str(cut_3_op.value) in cut_3_op.options) and \
                         str(cut_3.value) is not 'None' and cut_3_input.value != "":
             if cut_cmd != "":
                 cut_cmd += " & "
-            cut_cmd += "(" + "df[\"" + str(cut_3.value) + "\"]" + str(cut_3_op.value) + \
+            cut_cmd += "(df[\"" + str(cut_3.value) + "\"]" + str(cut_3_op.value) + \
                        "%d" % float(cut_3_input.value) + ")"
 
         if cut_cmd != "":
-            cut_cmd += ", ["
-            for i, v in enumerate(columns):
-                if i == 0:
-                    cut_cmd += "\"" + v + "\""
-                else:
-                    cut_cmd += ",\"" + v + "\""
-            cut_cmd += "]"
-            df_loc = df.loc[eval(cut_cmd)]
+            cut_cmd += " & (df[\"event_id\"]>"+str(range_select.value) + ") & " + \
+                       "(df[\"event_id\"]<"+str(int(range_select.value)+int(num_event.value)) + ")"
+        else:
+            cut_cmd += "(df[\"event_id\"]>" + str(range_select.value) + ") & " + \
+                       "(df[\"event_id\"]<" + str(int(range_select.value)+int(num_event.value)) + ")"
+
+        cut_cmd += ", ["
+        for i, v in enumerate(columns):
+            if i == 0:
+                cut_cmd += "\"" + v + "\""
+            else:
+                cut_cmd += ",\"" + v + "\""
+        cut_cmd += "]"
+        df_loc = df.loc[eval(cut_cmd)]
 
         x_title = x.value.title()
         y_title = y.value.title()
@@ -222,6 +228,9 @@ def update_data(attr, old, new):
         cut_1.options = ['None'] + columns
         cut_2.options = ['None'] + columns
         cut_3.options = ['None'] + columns
+        range_select.start = df['event_id'].min()
+        range_select.end = df['event_id'].max()
+        range_select.value = df['event_id'].min()
         layout.children[1] = create_figure()
 
 
@@ -239,6 +248,12 @@ size.on_change('value', update)
 
 color = Select(title='Color', value='None', options=['None'] + quantileable)
 color.on_change('value', update)
+
+num_event = TextInput(value="5000", title="Number of events to be displayed")
+num_event.on_change('value', update_data)
+
+range_select = Slider(start=0, end=1000, step=1, title='Event_id starting value')
+range_select.on_change('value', update)
 
 # cut 1
 cut_1 = Select(title='Cuts', value='', options=columns, width=100)
@@ -264,7 +279,7 @@ cut_3_op.on_change('value', update)
 cut_3_input = TextInput(value="", title="Value", width=50)
 cut_3_input.on_change('value', update)
 
-controls = widgetbox([text_input, x, y, color, size], width=350)
+controls = widgetbox([text_input, x, y, color, size, num_event, range_select], width=350)
 cut_1_row = row(cut_1, cut_1_op)
 cut_2_row = row(cut_2, cut_2_op)
 cut_3_row = row(cut_3, cut_3_op)
